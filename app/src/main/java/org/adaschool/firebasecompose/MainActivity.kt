@@ -22,14 +22,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import org.adaschool.firebase.compose.R
 import org.adaschool.firebasecompose.ui.theme.FirebaseComposeTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
+        val db = Firebase.firestore
+
         val onMessageClicked: (String) -> Unit = { message ->
             Log.d("Developer", "Message: $message")
+            db.collection("messages")
+                .add(Message(message))
+                .addOnSuccessListener { documentReference ->
+                    Log.d("Development", "DocumentSnapshot added with ID: ${documentReference.id}")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Development", "Error adding document", e)
+                }
         }
         setContent {
             FirebaseComposeTheme {
@@ -45,6 +59,8 @@ class MainActivity : ComponentActivity() {
     }
 
 }
+
+data class Message(val text: String)
 
 @Composable
 fun MessagingApp(content: @Composable () -> Unit) {
@@ -73,7 +89,10 @@ fun MessageForm(onSendMessage: (String) -> Unit) {
             .padding(10.dp)
             .weight(0.4f),
 
-            onClick = { onSendMessage(messageTextField.value.text) }) {
+            onClick = {
+                onSendMessage(messageTextField.value.text)
+                messageTextField.value = TextFieldValue()
+            }) {
             Text(text = "Send")
         }
     }
