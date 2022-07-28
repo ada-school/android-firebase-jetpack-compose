@@ -1,25 +1,28 @@
 <img align="right" src="https://github.com/ada-school/module-template/blob/main/ada.png">
 
 
-## <REPLACE WITH CODELAB NAME>
+## Jetpack Compose Items List with Firestore
 
-<Replace with codelab descrition>
+Use Firestore and Jetpack Compose to display a list of items.
 
 **Learning Objectives**
 
-- [ ]  /*replace with learning objetives*/
+- [ ]  Explain what is Firebase
+- [ ]  Configure Firebase Android Project
+- [ ]  Use Firestore and Jetpack compose to display a list of Items. 
 
 
+## Growth Mindset 
 
-## /*Replace with Human Skill to be practice*/ 🤹🏽 
-
-/*replace with brief introduction of human skill in the context of the codelab*/
+Let's have an Open Mindset and learn how to integrate two powerful technologies:
+* Firestore Realtime Database
+* Jetpack Compose
 
 **Main Topics**
 
-* /*replace with main topic 1*/
-* /*replace with main topic 2*/
-* /*replace with main topic 2*/
+* Firestore
+* Jetpack Compose
+* Firebase
 
 
 
