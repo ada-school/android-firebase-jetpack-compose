@@ -10,7 +10,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,10 +24,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.firestore.ktx.toObjects
 import com.google.firebase.ktx.Firebase
 import org.adaschool.firebase.compose.R
 import org.adaschool.firebasecompose.ui.theme.FirebaseComposeTheme
+
+const val TAG = "Developer"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,19 +40,21 @@ class MainActivity : ComponentActivity() {
         val messagesCollection = db.collection("messages")
         val messagesListState = SnapshotStateList<Message>()
 
-        messagesCollection
-            .get()
-            .addOnSuccessListener { result ->
 
-                for (document in result) {
-                    messagesListState.add(document.toObject())
-                    Log.d("Development", "DocumentSnapshot added with ID: ${document.data}")
-                }
-            }
-            .addOnFailureListener { e ->
-                Log.e("Development", "Error adding document", e)
+        messagesCollection.addSnapshotListener { snapshot, e ->
+            if (e != null) {
+                Log.e(TAG, "Listen failed.", e)
+                return@addSnapshotListener
             }
 
+            if (snapshot != null && !snapshot.isEmpty) {
+                val messagesList = snapshot.toObjects<Message>()
+                messagesListState.clear()
+                messagesListState.addAll(messagesList)
+            } else {
+                Log.d(TAG, "Current data: null")
+            }
+        }
 
         val onMessageClicked: (String) -> Unit = { message ->
             Log.d("Developer", "Message: $message")
@@ -56,10 +62,10 @@ class MainActivity : ComponentActivity() {
             messagesCollection
                 .add(Message(message))
                 .addOnSuccessListener { documentReference ->
-                    Log.d("Development", "DocumentSnapshot added with ID: ${documentReference.id}")
+                    Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
                 }
                 .addOnFailureListener { e ->
-                    Log.e("Development", "Error adding document", e)
+                    Log.e(TAG, "Error adding document", e)
                 }
 
         }
