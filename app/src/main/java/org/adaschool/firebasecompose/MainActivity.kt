@@ -10,9 +10,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -23,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import org.adaschool.firebase.compose.R
 import org.adaschool.firebasecompose.ui.theme.FirebaseComposeTheme
@@ -33,10 +33,27 @@ class MainActivity : ComponentActivity() {
 
 
         val db = Firebase.firestore
+        val messagesCollection = db.collection("messages")
+        val messagesListState = SnapshotStateList<Message>()
+
+        messagesCollection
+            .get()
+            .addOnSuccessListener { result ->
+
+                for (document in result) {
+                    messagesListState.add(document.toObject())
+                    Log.d("Development", "DocumentSnapshot added with ID: ${document.data}")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Development", "Error adding document", e)
+            }
+
 
         val onMessageClicked: (String) -> Unit = { message ->
             Log.d("Developer", "Message: $message")
-            db.collection("messages")
+
+            messagesCollection
                 .add(Message(message))
                 .addOnSuccessListener { documentReference ->
                     Log.d("Development", "DocumentSnapshot added with ID: ${documentReference.id}")
@@ -44,13 +61,16 @@ class MainActivity : ComponentActivity() {
                 .addOnFailureListener { e ->
                     Log.e("Development", "Error adding document", e)
                 }
+
         }
+
+
         setContent {
             FirebaseComposeTheme {
                 MessagingApp {
                     Column {
                         MessageForm(onMessageClicked)
-                        MessagesList()
+                        MessagesList(messagesListState)
                     }
 
                 }
@@ -60,7 +80,7 @@ class MainActivity : ComponentActivity() {
 
 }
 
-data class Message(val text: String)
+data class Message(var text: String? = "")
 
 @Composable
 fun MessagingApp(content: @Composable () -> Unit) {
@@ -99,10 +119,11 @@ fun MessageForm(onSendMessage: (String) -> Unit) {
 }
 
 @Composable
-fun MessagesList(messages: List<String> = List(500) { "Message $it" }) {
+fun MessagesList(messages: SnapshotStateList<Message>) {
+
     LazyColumn {
         items(messages) { message ->
-            MessageRow(message)
+            MessageRow(message.text!!)
         }
     }
 }
@@ -137,12 +158,13 @@ fun DefaultPreview() {
     val onMessageClicked: (String) -> Unit = { message ->
         Log.d("Developer", "Message: $message")
     }
+    val messagesListState = SnapshotStateList<Message>()
 
     FirebaseComposeTheme {
         MessagingApp {
             Column {
                 MessageForm(onMessageClicked)
-                MessagesList()
+                MessagesList(messagesListState)
             }
 
         }
