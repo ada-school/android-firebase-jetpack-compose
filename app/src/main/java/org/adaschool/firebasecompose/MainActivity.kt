@@ -4,17 +4,24 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.adaschool.firebasecompose.ui.theme.FirebaseComposeTheme
 
 class MainActivity : ComponentActivity() {
@@ -27,9 +34,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             FirebaseComposeTheme {
                 MessagingApp {
-                    MessageForm(onMessageClicked)
-                }
+                    Column {
+                        MessageForm(onMessageClicked)
+                        MessagesList()
+                    }
 
+                }
             }
         }
     }
@@ -51,18 +61,55 @@ fun MessageForm(onSendMessage: (String) -> Unit) {
     val messageTextField = remember { mutableStateOf(TextFieldValue()) }
     Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
         TextField(
-            modifier = Modifier.padding(10.dp).weight(0.8f),
+            modifier = Modifier
+                .padding(10.dp)
+                .weight(0.8f),
             value = messageTextField.value,
             placeholder = { Text(text = "Enter message") },
             onValueChange = { messageTextField.value = it }
 
         )
-        Button(modifier = Modifier.padding(10.dp).weight(0.4f),
+        Button(modifier = Modifier
+            .padding(10.dp)
+            .weight(0.4f),
 
             onClick = { onSendMessage(messageTextField.value.text) }) {
             Text(text = "Send")
         }
     }
+}
+
+@Composable
+fun MessagesList(messages: List<String> = List(500) { "Message $it" }) {
+    LazyColumn {
+        items(messages) { message ->
+            MessageRow(message)
+        }
+    }
+}
+
+@Composable
+fun MessageRow(message: String) {
+    Surface(
+        color = colorResource(id = R.color.alligator_green),
+        modifier = Modifier.padding(15.dp, 6.dp, 15.dp, 0.dp),
+        border = BorderStroke(1.dp, colorResource(id = R.color.white)),
+        shape = RoundedCornerShape(5.dp)
+    )
+    {
+        Text(
+            text = message, modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp),
+            style = TextStyle(
+                textAlign = TextAlign.Center,
+                color = colorResource(id = R.color.white),
+                fontSize = 16.sp
+            )
+        )
+        Divider()
+    }
+
 }
 
 @Preview(showBackground = true)
@@ -74,7 +121,11 @@ fun DefaultPreview() {
 
     FirebaseComposeTheme {
         MessagingApp {
-            MessageForm(onMessageClicked)
+            Column {
+                MessageForm(onMessageClicked)
+                MessagesList()
+            }
+
         }
     }
 }
